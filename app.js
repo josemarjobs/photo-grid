@@ -1,5 +1,6 @@
 var express = require('express')
 var path = require('path')
+var config = require('./config/config.js')
 
 var app = express()
 app.set('views', path.join(__dirname, 'views'))
@@ -8,6 +9,7 @@ app.set('view engine', 'html')
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.set('port', process.env.PORT || 3000)
+app.set('host', config.host)
 
 require('./routes/routes')(express, app)
 

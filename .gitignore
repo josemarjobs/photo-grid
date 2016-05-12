@@ -1,4 +1,4 @@
 node_modules
-config/development.js
-config/production.js
+config/development.json
+config/production.json
 .DS_Store
