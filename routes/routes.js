@@ -91,11 +91,17 @@ function Router (express, app, formidable, fs, os, gm, knoxClient, mongoose, io)
   }) // end /upload
 
   router.get('/getimages', function(req, res, next){
-    SingleImageModel.find({}, function(err, result) {
+    SingleImageModel.find({}, null, {sort:{votes:-1}}, function(err, result) {
       res.send(JSON.stringify(result));
     })
   }) // end /getimages
 
+  router.get('/voteup/:id', function(req, res, next) {
+    SingleImageModel
+      .findByIdAndUpdate(req.params.id, {$inc: {votes:1}}, function(err, result) {
+        res.status(200).send({votes: result.votes});
+      });
+  }) // end /voteup/:id
   app.use('/', router)
 }
 
