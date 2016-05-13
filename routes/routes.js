@@ -1,4 +1,16 @@
-function router (express, app, formidable, fs, os, gm, knoxClient) {
+function Router (express, app, formidable, fs, os, gm, knoxClient, mongoose, io) {
+
+  var Socket;
+  io.on('connection', function(socket) {
+    Socket = socket
+  })
+
+  var singleImage = new mongoose.Schema({
+    filename: String,
+    votes: Number
+  })
+  var SingleImageModel = mongoose.model('singleImage', singleImage)
+
   var router = express.Router()
 
   router.get('/', function(req, res, next) {
@@ -26,17 +38,11 @@ function router (express, app, formidable, fs, os, gm, knoxClient) {
     var tmpFile, nfile, fname;
 
     var newForm = new formidable.IncomingForm()
-    newForm.keepExtensions(true)
+    newForm.keepExtensions = true
     newForm.parse(req, function(err, fields, files) {
-      // -----------------------------------
-      console.dir(files)
-      // -----------------------------------
       tmpFile = files.upload.path
       fname = generateFilename(files.upload.name)
       nfile = os.tmpDir() + '/' + fname
-      // -----------------------------------
-      console.dir(tmpFile, fname, nfile)
-      // -----------------------------------
       res.writeHead(200, {'Content-Type': 'text/plain'})
       res.end()
     })
@@ -55,6 +61,23 @@ function router (express, app, formidable, fs, os, gm, knoxClient) {
             request.on('response', function(response) {
               if (response.statusCode == 200) {
                 // the file is in the S3 bucket
+                // Now save the reference into mongodb
+                var newImage = new SingleImageModel({
+                  filename: fname,
+                  votes: 0
+                }).save();
+
+                Socket.emit('status', {
+                  'message': 'Saved!!!',
+                  'delay': 3000
+                })
+                Socket.emit('doUpdate', {})
+
+                // Delete the local file
+                fs.unlink(nfile, function(err) {
+                  console.log("Local file deleted.");
+                })
+
               }
             })
 
@@ -65,9 +88,15 @@ function router (express, app, formidable, fs, os, gm, knoxClient) {
       })
     })
 
-  })
+  }) // end /upload
+
+  router.get('/getimages', function(req, res, next){
+    SingleImageModel.find({}, function(err, result) {
+      res.send(JSON.stringify(result));
+    })
+  }) // end /getimages
 
   app.use('/', router)
 }
 
-module.exports = router
+module.exports = Router

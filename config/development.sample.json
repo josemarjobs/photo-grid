@@ -2,5 +2,6 @@
   "host": "http://localhost:3000",
   "S3AccessKey": "YOURS3ACCESSKEY",
   "S3SecretKey": "YOURS3SECRETKEY",
-  "S3Bucket": "S3BUCKETNAME"
+  "S3Bucket": "S3BUCKETNAME",
+  "dbURL": "dbURL"
 }
